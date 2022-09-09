@@ -6,17 +6,21 @@ import Modal from './Modal';
 import DropDown from './DropDown';
 import DatePickerForm from 'components/forms/DatePickerForm';
 import useLocale from 'hooks/useLocale';
-import { getDateRange, dateFormat } from 'lib/date';
+import { dateFormat } from 'lib/date';
 import Calendar from 'assets/calendar-alt.svg';
 import Icon from './Icon';
 
-const filterOptions = [
+export const filterOptions = [
   { label: <FormattedMessage id="label.today" defaultMessage="Today" />, value: '1day' },
   {
     label: (
       <FormattedMessage id="label.last-hours" defaultMessage="Last {x} hours" values={{ x: 24 }} />
     ),
     value: '24hour',
+  },
+  {
+    label: <FormattedMessage id="label.yesterday" defaultMessage="Yesterday" />,
+    value: '-1day',
   },
   {
     label: <FormattedMessage id="label.this-week" defaultMessage="This week" />,
@@ -48,14 +52,18 @@ const filterOptions = [
   },
   { label: <FormattedMessage id="label.this-year" defaultMessage="This year" />, value: '1year' },
   {
+    label: <FormattedMessage id="label.all-time" defaultMessage="All time" />,
+    value: 'all',
+    divider: true,
+  },
+  {
     label: <FormattedMessage id="label.custom-range" defaultMessage="Custom range" />,
     value: 'custom',
     divider: true,
   },
 ];
 
-function DateFilter({ value, startDate, endDate, onChange, className }) {
-  const { locale } = useLocale();
+function DateFilter({ value, startDate, endDate, onChange, className, options }) {
   const [showPicker, setShowPicker] = useState(false);
   const displayValue =
     value === 'custom' ? (
@@ -64,12 +72,12 @@ function DateFilter({ value, startDate, endDate, onChange, className }) {
       value
     );
 
-  function handleChange(value) {
+  async function handleChange(value) {
     if (value === 'custom') {
       setShowPicker(true);
       return;
     }
-    onChange(getDateRange(value, locale));
+    onChange(value);
   }
 
   function handlePickerChange(value) {
@@ -82,7 +90,7 @@ function DateFilter({ value, startDate, endDate, onChange, className }) {
       <DropDown
         className={className}
         value={displayValue}
-        options={filterOptions}
+        options={options || filterOptions}
         onChange={handleChange}
       />
       {showPicker && (

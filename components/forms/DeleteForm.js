@@ -8,7 +8,8 @@ import FormLayout, {
   FormMessage,
   FormRow,
 } from 'components/layout/FormLayout';
-import useDelete from 'hooks/useDelete';
+import Loading from 'components/common/Loading';
+import useApi from 'hooks/useApi';
 
 const CONFIRMATION_WORD = 'DELETE';
 
@@ -27,11 +28,14 @@ const validate = ({ confirmation }) => {
 };
 
 export default function DeleteForm({ values, onSave, onClose }) {
-  const del = useDelete();
+  const { del } = useApi();
   const [message, setMessage] = useState();
+  const [deleting, setDeleting] = useState(false);
 
   const handleSubmit = async ({ type, id }) => {
-    const { ok, data } = await del(`/api/${type}/${id}`);
+    setDeleting(true);
+
+    const { ok, data } = await del(`/${type}/${id}`);
 
     if (ok) {
       onSave();
@@ -39,11 +43,14 @@ export default function DeleteForm({ values, onSave, onClose }) {
       setMessage(
         data || <FormattedMessage id="message.failure" defaultMessage="Something went wrong." />,
       );
+
+      setDeleting(false);
     }
   };
 
   return (
     <FormLayout>
+      {deleting && <Loading overlay />}
       <Formik
         initialValues={{ confirmation: '', ...values }}
         validate={validate}

@@ -1,11 +1,11 @@
+/* eslint-disable no-console */
 require('dotenv').config();
-const bcrypt = require('bcryptjs');
+const { hashPassword } = require('next-basics');
 const chalk = require('chalk');
 const prompts = require('prompts');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-const SALT_ROUNDS = 10;
 
 const runQuery = async query => {
   return query.catch(e => {
@@ -22,10 +22,6 @@ const updateAccountByUsername = (username, data) => {
       data,
     }),
   );
-};
-
-const hashPassword = password => {
-  return bcrypt.hashSync(password, SALT_ROUNDS);
 };
 
 const changePassword = async (username, newPassword) => {
@@ -87,7 +83,7 @@ const getUsernameAndPassword = async () => {
     await changePassword(username, password);
     console.log('Password changed for user', chalk.greenBright(username));
   } catch (error) {
-    if (error.message.includes('RecordNotFound')) {
+    if (error.meta.cause.includes('Record to update not found')) {
       console.log('Account not found:', chalk.redBright(username));
     } else {
       throw error;

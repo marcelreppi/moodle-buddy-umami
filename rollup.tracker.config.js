@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import buble from '@rollup/plugin-buble';
-import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 
 export default {
@@ -9,5 +9,13 @@ export default {
     file: 'public/umami.js',
     format: 'iife',
   },
-  plugins: [resolve(), buble({ objectAssign: true }), terser({ compress: { evaluate: false } })],
+  plugins: [
+    replace({
+      '/api/collect': process.env.COLLECT_API_ENDPOINT || '/api/collect',
+      delimiters: ['', ''],
+      preventAssignment: true,
+    }),
+    buble({ objectAssign: true }),
+    terser({ compress: { evaluate: false } }),
+  ],
 };

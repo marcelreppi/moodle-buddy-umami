@@ -1,7 +1,6 @@
-import { getAccountById, getAccountByUsername, updateAccount, createAccount } from 'lib/queries';
+import { ok, unauthorized, methodNotAllowed, badRequest, hashPassword } from 'next-basics';
+import { getAccountById, getAccountByUsername, updateAccount, createAccount } from 'queries';
 import { useAuth } from 'lib/middleware';
-import { hashPassword } from 'lib/crypto';
-import { ok, unauthorized, methodNotAllowed, badRequest } from 'lib/response';
 
 export default async (req, res) => {
   await useAuth(req, res);
@@ -23,10 +22,7 @@ export default async (req, res) => {
 
         // Only admin can change these fields
         if (current_user_is_admin) {
-          // Cannot change username of admin
-          if (username !== 'admin') {
-            data.username = username;
-          }
+          data.username = username;
           data.is_admin = is_admin;
         }
 

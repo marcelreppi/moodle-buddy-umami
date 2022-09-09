@@ -11,14 +11,12 @@
 # next.js
 /.next/
 /out/
-/prisma/schema.prisma
+/prisma/
 
 # production
 /build
 /public/umami.js
 /public/geo
-/public/lang
-/lang-compiled
 
 # misc
 .DS_Store
@@ -37,3 +35,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+*.dev.yml
+

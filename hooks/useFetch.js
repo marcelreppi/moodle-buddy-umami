@@ -1,26 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { get } from 'lib/web';
-import { updateQuery } from 'redux/actions/queries';
-import { useRouter } from 'next/router';
+import { saveQuery } from 'store/queries';
+import useApi from './useApi';
 
 export default function useFetch(url, options = {}, update = []) {
-  const dispatch = useDispatch();
   const [response, setResponse] = useState();
   const [error, setError] = useState();
-  const [loading, setLoadiing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [count, setCount] = useState(0);
-  const { basePath } = useRouter();
-  const { params = {}, disabled, headers, delay = 0, interval, onDataLoad } = options;
+  const { get } = useApi();
+  const { params = {}, headers = {}, disabled = false, delay = 0, interval, onDataLoad } = options;
 
   async function loadData(params) {
     try {
-      setLoadiing(true);
+      setLoading(true);
       setError(null);
       const time = performance.now();
-      const { data, status, ok } = await get(`${basePath}${url}`, params, headers);
 
-      dispatch(updateQuery({ url, time: performance.now() - time, completed: Date.now() }));
+      const { data, status, ok } = await get(url, params, headers);
+
+      await saveQuery(url, { time: performance.now() - time, completed: Date.now() });
 
       if (status >= 400) {
         setError(data);
@@ -31,10 +29,12 @@ export default function useFetch(url, options = {}, update = []) {
 
       onDataLoad?.(data);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
+
       setError(e);
     } finally {
-      setLoadiing(false);
+      setLoading(false);
     }
   }
 
@@ -46,7 +46,7 @@ export default function useFetch(url, options = {}, update = []) {
         clearTimeout(id);
       };
     }
-  }, [url, !!disabled, count, ...update]);
+  }, [url, disabled, count, ...update]);
 
   useEffect(() => {
     if (interval && !disabled) {
@@ -56,7 +56,7 @@ export default function useFetch(url, options = {}, update = []) {
         clearInterval(id);
       };
     }
-  }, [interval, !!disabled]);
+  }, [interval, disabled]);
 
   return { ...response, error, loading };
 }

@@ -1,8 +1,6 @@
-import { serialize } from 'cookie';
-import { checkPassword, createSecureToken } from 'lib/crypto';
-import { getAccountByUsername } from 'lib/queries';
-import { AUTH_COOKIE_NAME } from 'lib/constants';
-import { ok, unauthorized, badRequest } from 'lib/response';
+import { ok, unauthorized, badRequest, checkPassword, createSecureToken } from 'next-basics';
+import { getAccountByUsername } from 'queries/admin/account/getAccountByUsername';
+import { secret } from 'lib/crypto';
 
 export default async (req, res) => {
   const { username, password } = req.body;
@@ -13,19 +11,12 @@ export default async (req, res) => {
 
   const account = await getAccountByUsername(username);
 
-  if (account && (await checkPassword(password, account.password))) {
+  if (account && checkPassword(password, account.password)) {
     const { user_id, username, is_admin } = account;
-    const token = await createSecureToken({ user_id, username, is_admin });
-    const cookie = serialize(AUTH_COOKIE_NAME, token, {
-      path: '/',
-      httpOnly: true,
-      sameSite: true,
-      maxAge: 60 * 60 * 24 * 365,
-    });
+    const user = { user_id, username, is_admin };
+    const token = createSecureToken(user, secret());
 
-    res.setHeader('Set-Cookie', [cookie]);
-
-    return ok(res, { token });
+    return ok(res, { token, user });
   }
 
   return unauthorized(res);
